@@ -1,58 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
-    <title>Mapbox Example</title>
+    <title>OpenStreetMap Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width:84%;
+            right: 0
+        }
+        .sidebar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width:15%;
+            left: 0;
+            background-color: #f8f9fa;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: calc(100% - 20px);
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        #buscar-btn {
+            display: block;
+            width: calc(100% - 20px);
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        #buscar-btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <!-- Agregar el campo de entrada de texto -->
-    <div>
-        <label for="direccion">Ingresa una dirección:</label>
-        <input type="text" id="direccion" name="direccion">
-        <button onclick="buscarDireccion()">Buscar</button>
+    <div class="sidebar">
+        <h2>Buscar Dirección</h2>
+        <div class="input-group">
+            <label for="calle">Calle:</label>
+            <input type="text" id="calle" name="calle" placeholder="Ingrese nombre de la calle">
+        </div>
+        <div class="input-group">
+            <label for="numero">Número:</label>
+            <input type="text" id="numero" name="numero" placeholder="Ingrese número de la casa">
+        </div>
+        <div class="input-group">
+            <label for="comuna">Comuna:</label>
+            <input type="text" id="comuna" name="comuna" placeholder="Ingrese la comuna">
+        </div>
+        <button id="buscar-btn" onclick="buscarDireccion()">Buscar</button>
     </div>
 
     <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoibWFydnRjbyIsImEiOiJjbHdvMG8wZWoxN2doMmltandoNjhnY2J2In0.uhQKCbUUxIUeUR1p5_9EFA'; // Reemplaza con tu token de acceso
-        var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-72.6, -38.75], // Coordenadas iniciales de Temuco, Chile
-            zoom: 12 // Nivel de zoom inicial
+        var map = L.map('map').setView([-38.75, -72.6], 12); // Coordenadas iniciales de Temuco, Chile y zoom
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var markerIcon = L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
         });
 
+        var marker;
+
         function buscarDireccion() {
-            var direccion = document.getElementById('direccion').value;
-            if (direccion.trim() !== '') {
-                // Realizar la geocodificación utilizando la API de Mapbox
-                fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(direccion) + '.json?access_token=' + mapboxgl.accessToken)
+            var calle = document.getElementById('calle').value;
+            var numero = document.getElementById('numero').value;
+            var comuna = document.getElementById('comuna').value;
+
+            if (calle.trim() !== '' && numero.trim() !== '' && comuna.trim() !== '') {
+                // Concatenar la dirección completa
+                var direccionCompleta = calle.trim() + ' ' + numero.trim() + ', ' + comuna.trim();
+                // Obtener las coordenadas de la dirección utilizando un servicio de geocodificación
+                fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(direccionCompleta))
                     .then(function(response) {
                         return response.json();
                     })
                     .then(function(data) {
-                        // Obtener las coordenadas de la primera coincidencia de la búsqueda
-                        var coordenadas = data.features[0].center;
-                        // Centrar el mapa en las coordenadas encontradas
-                        map.setCenter(coordenadas);
-                        // Agregar un marcador en las coordenadas encontradas
-                        new mapboxgl.Marker()
-                            .setLngLat(coordenadas)
-                            .addTo(map);
-                        alert('El mapa se ha centrado en: ' + coordenadas);
+                        if (data && data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            // Centrar el mapa en las coordenadas encontradas
+                            map.setView([lat, lon], 18);
+                            // Eliminar el marcador anterior si existe
+                            if (marker) {
+                                marker.remove();
+                            }
+                            // Agregar un nuevo marcador en las coordenadas encontradas
+                            marker = L.marker([lat, lon], { icon: markerIcon }).addTo(map);
+                        } else {
+                            alert('No se encontraron resultados para la dirección ingresada.');
+                        }
                     })
                     .catch(function(error) {
                         console.log('Error al buscar la dirección:', error);
+                        alert('Ocurrió un error al buscar la dirección.');
                     });
             } else {
-                alert('Por favor, ingresa una dirección válida.');
+                alert('Por favor, complete todos los campos.');
             }
         }
     </script>
