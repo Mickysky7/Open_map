@@ -14,11 +14,11 @@
             flex-direction: column;
             height: 100vh;
         }
-        #map {
+        #map, #iframeContainer {
             flex-grow: 1;
         }
         .sidebar {
-            width: 200px; /* Reducido el ancho del menú de búsqueda */
+            width: 200px;
             background-color: #f8f9fa;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -41,7 +41,7 @@
             border: 1px solid #ced4da;
             border-radius: 4px;
         }
-        #buscar-btn {
+        #buscar-btn, #admin-btn {
             display: block;
             width: calc(100% - 20px);
             padding: 10px;
@@ -53,10 +53,9 @@
             font-size: 16px;
             margin-top: 10px;
         }
-        #buscar-btn:hover {
+        #buscar-btn:hover, #admin-btn:hover {
             background-color: #0056b3;
         }
-
         @media (min-width: 768px) {
             body {
                 flex-direction: row;
@@ -67,9 +66,38 @@
                 overflow-y: auto;
                 height: 100%;
             }
-            #map {
+            #map, #iframeContainer {
                 width: 80%;
             }
+        }
+        #iframeContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #back-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+        }
+        #back-btn:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -81,9 +109,14 @@
             <input type="text" id="direccion" name="direccion" placeholder="Ingrese la dirección completa">
         </div>
         <button id="buscar-btn" onclick="buscarDireccion()">Buscar</button>
+        <button id="admin-btn" onclick="mostrarIframe()">Ir a Panel de Administración</button>
     </div>
 
     <div id="map"></div>
+    <div id="iframeContainer">
+        <button id="back-btn" onclick="mostrarMapa()">Volver al Mapa</button>
+        <iframe title="Patrullaje Preventivo" width="1140" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=d899a1d9-fdac-41c6-a292-d869088793f8&autoAuth=true&ctid=e2df4b20-a412-4b56-96f5-8d2100e5e9d1" frameborder="0" allowFullScreen="true"></iframe>
+    </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map', {
@@ -169,8 +202,7 @@
                             alert('No se encontraron resultados para la dirección ingresada.');
                         }
                     })
-                    .catch(function(error)
-                    {
+                    .catch(function(error) {
                         console.log('Error al buscar la dirección:', error);
                         alert('Ocurrió un error al buscar la dirección.');
                     });
@@ -196,11 +228,29 @@
 
         // Agregar eventos de tecla a los campos de entrada
         var direccionInput = document.getElementById('direccion');
+        direccionInput.addEvent
         direccionInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 buscarDireccion();
             }
         });
+
+        // Función para mostrar el iframe de Power BI y ocultar el mapa
+        function mostrarIframe() {
+            document.getElementById('map').style.display = 'none';
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('back-btn').style.display = 'block';
+            document.querySelector('.sidebar').style.display = 'none';
+        }
+
+        // Función para mostrar el mapa y ocultar el iframe de Power BI
+        function mostrarMapa() {
+            document.getElementById('map').style.display = 'block';
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('back-btn').style.display = 'none';
+            document.querySelector('.sidebar').style.display = 'block';
+        }
     </script>
 </body>
 </html>
+
