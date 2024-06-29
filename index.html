@@ -219,38 +219,4 @@
             if (marker) {
                 marker.remove();
             }
-            // Agregar un nuevo marcador en la posición clickeada
-            marker = L.marker([lat, lon], { icon: markerIcon })
-                .addTo(map)
-                .bindPopup("Coordenadas: " + lat + ", " + lon)
-                .openPopup();
-        });
-
-        // Agregar eventos de tecla a los campos de entrada
-        var direccionInput = document.getElementById('direccion');
-        direccionInput.addEvent
-        direccionInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                buscarDireccion();
-            }
-        });
-
-        // Función para mostrar el iframe de Power BI y ocultar el mapa
-        function mostrarIframe() {
-            document.getElementById('map').style.display = 'none';
-            document.getElementById('iframeContainer').style.display = 'flex';
-            document.getElementById('back-btn').style.display = 'block';
-            document.querySelector('.sidebar').style.display = 'none';
-        }
-
-        // Función para mostrar el mapa y ocultar el iframe de Power BI
-        function mostrarMapa() {
-            document.getElementById('map').style.display = 'block';
-            document.getElementById('iframeContainer').style.display = 'none';
-            document.getElementById('back-btn').style.display = 'none';
-            document.querySelector('.sidebar').style.display = 'block';
-        }
-    </script>
-</body>
-</html>
-
+            // Agregar
